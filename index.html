@@ -359,7 +359,7 @@
                 // 배송메세지에서 사이즈 요청 감지 (s, m, l, 2s, 3s 등)
                 const sizeMatch = msg.match(/\b(2?s|m|l|2s|3s)\s*사이즈/i) || msg.match(/^(2?s|m|l|2s|3s)$/i) || msg.match(/\b(2?s|m|l|2s|3s)\b/i);
                 if (sizeMatch) {
-                    optionInfo = optionInfo.trim() + ' ' + sizeMatch[1].toLowerCase() + '사이즈로!';
+                    optionInfo = optionInfo.trim() + ' ' + sizeMatch[1].toUpperCase() + '사이즈로!';
                 }
 
                 return {
