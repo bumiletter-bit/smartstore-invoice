@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>스마트스토어 → 송장 변환기</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -431,30 +431,80 @@
         convertBtn.addEventListener('click', () => {
             if (!parsedData) return;
 
-            const converted = convertData(parsedData);
+            let converted = convertData(parsedData);
+
+            // 옵션정보 기준 오름차순 정렬
+            converted.sort((a, b) => (a['옵션정보'] || '').localeCompare(b['옵션정보'] || '', 'ko'));
 
             // Create workbook matching a.xlsx Sheet1 format
             const wb = XLSX.utils.book_new();
+            const headers = ['보내는사람', '보내는사람연락처', '출고지', '수취인명', '옵션정보', '수량', '수취인연락처1', '수취인연락처2', '배송지', '배송메세지', '구매자연락처'];
 
-            // Sheet1 - 송장 양식
-            const ws = XLSX.utils.json_to_sheet(converted, {
-                header: ['보내는사람', '보내는사람연락처', '출고지', '수취인명', '옵션정보', '수량', '수취인연락처1', '수취인연락처2', '배송지', '배송메세지', '구매자연락처']
+            const ws = XLSX.utils.json_to_sheet(converted, { header: headers });
+
+            // a.xlsx 기준 열 너비
+            ws['!cols'] = [
+                { wch: 18.5 },  // A 보내는사람
+                { wch: 14.25 }, // B 보내는사람연락처
+                { wch: 50.75 }, // C 출고지
+                { wch: 13.75 }, // D 수취인명
+                { wch: 60.25 }, // E 옵션정보
+                { wch: 5.5 },   // F 수량
+                { wch: 14.75 }, // G 수취인연락처1
+                { wch: 14.75 }, // H 수취인연락처2
+                { wch: 73.25 }, // I 배송지
+                { wch: 51 },    // J 배송메세지
+                { wch: 13 },    // K 구매자연락처
+            ];
+
+            // 스타일 정의
+            const thinBorder = {
+                top: { style: 'thin' },
+                bottom: { style: 'thin' },
+                left: { style: 'thin' },
+                right: { style: 'thin' }
+            };
+            const headerStyleYellow = {
+                fill: { fgColor: { rgb: 'FFFF00' } },
+                font: { bold: true, sz: 11 },
+                border: thinBorder,
+                alignment: { horizontal: 'center', vertical: 'center' }
+            };
+            const headerStyleGreen = {
+                fill: { fgColor: { rgb: '92D050' } },
+                font: { bold: true, sz: 11 },
+                border: thinBorder,
+                alignment: { horizontal: 'center', vertical: 'center' }
+            };
+            const dataStyle = {
+                border: thinBorder,
+                font: { sz: 10 },
+                alignment: { vertical: 'center' }
+            };
+
+            // 헤더 스타일 적용 (1행)
+            const colLetters = ['A','B','C','D','E','F','G','H','I','J','K'];
+            // A(보내는사람), B(연락처), C(출고지) = 초록, 나머지 = 노랑
+            const greenCols = [0, 1, 2]; // A, B, C
+            colLetters.forEach((col, i) => {
+                const ref = col + '1';
+                if (ws[ref]) {
+                    ws[ref].s = greenCols.includes(i) ? headerStyleGreen : headerStyleYellow;
+                }
             });
 
-            // Set column widths
-            ws['!cols'] = [
-                { wch: 22 }, // 보내는사람
-                { wch: 16 }, // 보내는사람연락처
-                { wch: 40 }, // 출고지
-                { wch: 10 }, // 수취인명
-                { wch: 40 }, // 옵션정보
-                { wch: 6 },  // 수량
-                { wch: 16 }, // 수취인연락처1
-                { wch: 16 }, // 수취인연락처2
-                { wch: 45 }, // 배송지
-                { wch: 25 }, // 배송메세지
-                { wch: 16 }, // 구매자연락처 (K열)
-            ];
+            // 데이터 행 스타일 적용
+            const totalRows = converted.length + 1; // +1 for header
+            for (let r = 2; r <= totalRows; r++) {
+                colLetters.forEach((col) => {
+                    const ref = col + r;
+                    if (ws[ref]) {
+                        ws[ref].s = dataStyle;
+                    } else {
+                        ws[ref] = { v: '', t: 's', s: dataStyle };
+                    }
+                });
+            }
 
             XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
 
