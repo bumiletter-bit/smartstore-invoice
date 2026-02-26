@@ -353,12 +353,21 @@
 
             return data.map(row => {
                 const buyerName = (row['구매자명'] || '').trim();
+                let optionInfo = (row['옵션정보'] || '').replace(/아꼼이네\s*상품선택\s*:\s*\d+\.\s*(\(제철\)\s*)?/g, '');
+                const msg = (row['배송메세지'] || '').trim();
+
+                // 배송메세지에서 사이즈 요청 감지 (s, m, l, 2s, 3s 등)
+                const sizeMatch = msg.match(/\b(2?s|m|l|2s|3s)\s*사이즈/i) || msg.match(/^(2?s|m|l|2s|3s)$/i) || msg.match(/\b(2?s|m|l|2s|3s)\b/i);
+                if (sizeMatch) {
+                    optionInfo = optionInfo.trim() + ' ' + sizeMatch[1].toLowerCase() + '사이즈로!';
+                }
+
                 return {
                     '보내는사람': buyerName ? buyerName + '(제주아꼼이네)' : '',
                     '보내는사람연락처': (row['구매자연락처'] || '').includes('*') ? '010-6687-4031' : (row['구매자연락처'] || ''),
                     '출고지': senderAddress,
                     '수취인명': row['수취인명'] || '',
-                    '옵션정보': (row['옵션정보'] || '').replace(/아꼼이네\s*상품선택\s*:\s*\d+\.\s*(\(제철\)\s*)?/g, ''),
+                    '옵션정보': optionInfo,
                     '수량': parseInt(row['수량']) || 1,
                     '수취인연락처1': row['수취인연락처1'] || '',
                     '수취인연락처2': row['수취인연락처2'] || '',
