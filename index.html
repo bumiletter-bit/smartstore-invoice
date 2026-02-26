@@ -385,8 +385,8 @@
                 let optionInfo = (row['옵션정보'] || '').replace(/아꼼이네\s*.*?상품선택\s*:\s*\d+\.\s*(\(제철\)\s*)?/g, '').replace(/\(★행사\)\s*/g, '').replace(/★?추천\s*선물세트\s*\/\s*상품\s*및\s*과수\s*:\s*/g, '').trim();
                 const msg = (row['배송메세지'] || '').trim();
 
-                // 선물용 상품: "프리미엄 선물용 / 상품 및 과수: 프리미엄 선물용 ..." 형식으로 변환
-                if (optionInfo.includes('선물용')) {
+                // "/ 상품 및 과수:"가 없는 단독 선물용 상품만 변환 (예: 선물용 천혜향 - 2kg)
+                if (optionInfo.includes('선물용') && !optionInfo.includes('/ 상품 및 과수:')) {
                     if (!optionInfo.startsWith('프리미엄')) {
                         optionInfo = '프리미엄 ' + optionInfo;
                     }
