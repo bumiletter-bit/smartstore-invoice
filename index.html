@@ -385,6 +385,11 @@
                 let optionInfo = (row['옵션정보'] || '').replace(/아꼼이네\s*.*?상품선택\s*:\s*\d+\.\s*(\(제철\)\s*)?/g, '').replace(/\(★행사\)\s*/g, '').replace(/★?추천\s*선물세트\s*\/\s*상품\s*및\s*과수\s*:\s*/g, '').trim();
                 const msg = (row['배송메세지'] || '').trim();
 
+                // 레몬 10kg → 고정 문구로 변환
+                if (/레몬\s*10\s*kg/i.test(optionInfo)) {
+                    optionInfo = '과수 및 크기: 제주 레몬10kg(중대과)';
+                }
+
                 // 3종세트 상품: ★추천 선물세트 접두사 추가
                 if (optionInfo.includes('3종세트') && !optionInfo.includes('/ 상품 및 과수:')) {
                     optionInfo = '★추천 선물세트 / 상품 및 과수: ' + optionInfo;
