@@ -390,9 +390,15 @@
                     optionInfo = '과수 및 크기: 제주 레몬10kg(중대과)';
                 }
 
-                // 3종세트 상품: ★추천 선물세트 접두사 추가
-                if (optionInfo.includes('3종세트') && !optionInfo.includes('/ 상품 및 과수:')) {
-                    optionInfo = '★추천 선물세트 / 상품 및 과수: ' + optionInfo;
+                // 3종세트 상품: ★추천 선물세트 접두사 추가/변환
+                if (optionInfo.includes('3종세트')) {
+                    if (optionInfo.includes('/ 상품 및 과수:')) {
+                        // 기존 접두사(프리미엄 선물용 등)를 ★추천 선물세트로 변환
+                        const parts3 = optionInfo.split(/\/\s*상품\s*및\s*과수\s*:\s*/);
+                        optionInfo = '★추천 선물세트 / 상품 및 과수: ' + (parts3[1] || '').trim();
+                    } else {
+                        optionInfo = '★추천 선물세트 / 상품 및 과수: ' + optionInfo;
+                    }
                 }
 
                 // 선물용 상품 변환
@@ -411,7 +417,13 @@
                 }
 
                 // 배송메세지에서 사이즈 요청 감지
-                const detectedSize = detectSize(msg);
+                let detectedSize = detectSize(msg);
+
+                // 귤 상품 + 배송메세지에 "작다" 관련 표현 → S사이즈
+                if (!detectedSize && optionInfo.includes('귤') && /작은|작게|작다|작아|소과/.test(msg)) {
+                    detectedSize = 'S';
+                }
+
                 if (detectedSize) {
                     optionInfo = optionInfo.trim() + ' ' + detectedSize + '사이즈로!';
                 }
