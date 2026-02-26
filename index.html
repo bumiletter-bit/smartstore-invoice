@@ -382,8 +382,13 @@
 
             return data.map(row => {
                 const buyerName = (row['구매자명'] || '').trim();
-                let optionInfo = (row['옵션정보'] || '').replace(/아꼼이네\s*.*?상품선택\s*:\s*\d+\.\s*(\(제철\)\s*)?/g, '').replace(/\(★행사\)\s*/g, '');
+                let optionInfo = (row['옵션정보'] || '').replace(/아꼼이네\s*.*?상품선택\s*:\s*\d+\.\s*(\(제철\)\s*)?/g, '').replace(/\(★행사\)\s*/g, '').trim();
                 const msg = (row['배송메세지'] || '').trim();
+
+                // 프리미엄 선물용 상품: "프리미엄 선물용 / 상품 및 과수: " 접두사 추가
+                if (optionInfo.startsWith('프리미엄 선물용')) {
+                    optionInfo = '프리미엄 선물용 / 상품 및 과수: ' + optionInfo;
+                }
 
                 // 배송메세지에서 사이즈 요청 감지
                 const detectedSize = detectSize(msg);
