@@ -481,6 +481,18 @@
                 font: { name: '맑은 고딕', sz: 11 },
                 alignment: { vertical: 'center' }
             };
+            const dataStyleRed = {
+                border: thinBorder,
+                font: { name: '맑은 고딕', sz: 11, color: { rgb: 'FF0000' }, bold: true },
+                fill: { fgColor: { rgb: 'FFC7CE' } },
+                alignment: { vertical: 'center' }
+            };
+
+            // 배송메세지 날짜 요청 감지
+            function hasDateRequest(msg) {
+                if (!msg) return false;
+                return /다음\s*주|다음\s*날|내일|모레|글피|\d+일|\d+월|\d+\/\d+|월요|화요|수요|목요|금요|토요|일요|주말|평일|다다음|이번\s*주/.test(msg);
+            }
 
             // 헤더 스타일 적용 (1행)
             const colLetters = ['A','B','C','D','E','F','G','H','I','J','K'];
@@ -496,12 +508,18 @@
             // 데이터 행 스타일 적용
             const totalRows = converted.length + 1; // +1 for header
             for (let r = 2; r <= totalRows; r++) {
+                // J열(배송메세지) 날짜 요청 체크
+                const msgRef = 'J' + r;
+                const msgVal = ws[msgRef] ? String(ws[msgRef].v || '') : '';
+                const isDateReq = hasDateRequest(msgVal);
+
                 colLetters.forEach((col) => {
                     const ref = col + r;
+                    const useRed = isDateReq && col === 'J';
                     if (ws[ref]) {
-                        ws[ref].s = dataStyle;
+                        ws[ref].s = useRed ? dataStyleRed : dataStyle;
                     } else {
-                        ws[ref] = { v: '', t: 's', s: dataStyle };
+                        ws[ref] = { v: '', t: 's', s: useRed ? dataStyleRed : dataStyle };
                     }
                 });
             }
