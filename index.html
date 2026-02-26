@@ -488,6 +488,13 @@
                 alignment: { vertical: 'center' }
             };
 
+            const dataStyleYellow = {
+                border: thinBorder,
+                font: { name: '맑은 고딕', sz: 11 },
+                fill: { fgColor: { rgb: 'FFFF00' } },
+                alignment: { vertical: 'center' }
+            };
+
             // 배송메세지 날짜 요청 감지
             function hasDateRequest(msg) {
                 if (!msg) return false;
@@ -513,13 +520,21 @@
                 const msgVal = ws[msgRef] ? String(ws[msgRef].v || '') : '';
                 const isDateReq = hasDateRequest(msgVal);
 
+                // I열(배송지) 제주 배송 체크
+                const addrRef = 'I' + r;
+                const addrVal = ws[addrRef] ? String(ws[addrRef].v || '') : '';
+                const isJeju = /제주/.test(addrVal);
+
                 colLetters.forEach((col) => {
                     const ref = col + r;
-                    const useRed = isDateReq && col === 'J';
+                    let style = dataStyle;
+                    if (isDateReq && col === 'J') style = dataStyleRed;
+                    else if (isJeju && col === 'I') style = dataStyleYellow;
+
                     if (ws[ref]) {
-                        ws[ref].s = useRed ? dataStyleRed : dataStyle;
+                        ws[ref].s = style;
                     } else {
-                        ws[ref] = { v: '', t: 's', s: useRed ? dataStyleRed : dataStyle };
+                        ws[ref] = { v: '', t: 's', s: style };
                     }
                 });
             }
