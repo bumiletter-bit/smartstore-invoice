@@ -348,6 +348,38 @@
             document.getElementById('tableWrapper').innerHTML = html;
         }
 
+        // 한글/영문 사이즈 표현 → 영문 대문자 변환
+        function detectSize(msg) {
+            if (!msg) return null;
+            const lower = msg.toLowerCase().trim();
+
+            // 한글 사이즈 매핑
+            const koreanMap = [
+                { patterns: ['투에스', '2에스'], size: '2S' },
+                { patterns: ['쓰리에스', '3에스'], size: '3S' },
+                { patterns: ['에스', '스몰'], size: 'S' },
+                { patterns: ['엠', '미디엄', '미듐'], size: 'M' },
+                { patterns: ['엘', '라지'], size: 'L' },
+            ];
+
+            // 한글 패턴 먼저 체크 (투에스 > 에스 순서 중요)
+            for (const item of koreanMap) {
+                for (const p of item.patterns) {
+                    if (lower.includes(p)) return item.size;
+                }
+            }
+
+            // 영문+사이즈: "2s사이즈", "s 사이즈", "m사이즈"
+            let match = lower.match(/(2s|3s|s|m|l)\s*사이즈/);
+            if (match) return match[1].toUpperCase();
+
+            // 영문 단독: "2s", "s", "m" 등
+            match = lower.match(/\b(2s|3s)\b/) || lower.match(/\b([sml])\b/);
+            if (match) return match[1].toUpperCase();
+
+            return null;
+        }
+
         function convertData(data) {
             const senderAddress = document.getElementById('senderAddress').value.trim();
 
@@ -356,10 +388,10 @@
                 let optionInfo = (row['옵션정보'] || '').replace(/아꼼이네\s*상품선택\s*:\s*\d+\.\s*(\(제철\)\s*)?/g, '').replace(/\(★행사\)\s*/g, '');
                 const msg = (row['배송메세지'] || '').trim();
 
-                // 배송메세지에서 사이즈 요청 감지 (s, m, l, 2s, 3s 등)
-                const sizeMatch = msg.match(/\b(2?s|m|l|2s|3s)\s*사이즈/i) || msg.match(/^(2?s|m|l|2s|3s)$/i) || msg.match(/\b(2?s|m|l|2s|3s)\b/i);
-                if (sizeMatch) {
-                    optionInfo = optionInfo.trim() + ' ' + sizeMatch[1].toUpperCase() + '사이즈로!';
+                // 배송메세지에서 사이즈 요청 감지
+                const detectedSize = detectSize(msg);
+                if (detectedSize) {
+                    optionInfo = optionInfo.trim() + ' ' + detectedSize + '사이즈로!';
                 }
 
                 return {
