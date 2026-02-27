@@ -289,11 +289,15 @@
 
             <div class="upload-card">
                 <div class="channel-label channel-coupang">쿠팡</div>
-                <div class="upload-area coming-soon">
-                    <div class="upload-icon">🔧</div>
-                    <div class="upload-text">준비 중</div>
+                <div class="upload-area" id="uploadArea-coupang">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">
+                        엑셀 파일을 <strong>드래그</strong>하거나<br><strong>클릭</strong>하여 업로드
+                    </div>
+                    <div class="file-name" id="fileName-coupang"></div>
                 </div>
-                <button class="btn coming-soon" disabled>준비 중</button>
+                <input type="file" id="fileInput-coupang" accept=".xlsx,.xls">
+                <button class="btn btn-convert" id="convertBtn-coupang" disabled>변환 및 다운로드</button>
             </div>
         </div>
 
@@ -323,6 +327,7 @@
         // ===== 상태 =====
         let parsedDataSmart = null;
         let parsedDataJasamol = null;
+        let parsedDataCoupang = null;
 
         // ===== DOM =====
         const previewSection = document.getElementById('previewSection');
@@ -363,6 +368,7 @@
                         if (data.length > 0) {
                             if (storeKey === 'smart') parsedDataSmart = data;
                             else if (storeKey === 'jasamol') parsedDataJasamol = data;
+                            else if (storeKey === 'coupang') parsedDataCoupang = data;
                             btn.disabled = false;
                             showPreview(convertFn(data));
                         } else {
@@ -376,7 +382,7 @@
             }
 
             btn.addEventListener('click', () => {
-                const data = storeKey === 'smart' ? parsedDataSmart : parsedDataJasamol;
+                const data = storeKey === 'smart' ? parsedDataSmart : storeKey === 'jasamol' ? parsedDataJasamol : parsedDataCoupang;
                 if (!data) return;
                 let converted = convertFn(data);
                 converted.sort((a, b) => (a['옵션정보'] || '').localeCompare(b['옵션정보'] || '', 'ko'));
@@ -555,7 +561,7 @@
                 optionInfo = addSizeSuffix(optionInfo, msg);
                 const recipientName = (row['수령인'] || '').trim();
                 return {
-                    '보내는사람': buyerName ? buyerName + '(제주아꼼이네)' : '',
+                    '보내는사람': buyerName ? buyerName + '(제주아꼼이네 자사몰)' : '',
                     '보내는사람연락처': (row['주문자 휴대전화'] || '').includes('*') ? '010-6687-4031' : (row['주문자 휴대전화'] || ''),
                     '출고지': senderAddress,
                     '수취인명': (recipientName.length === 1) ? recipientName + '*' : recipientName,
@@ -566,6 +572,32 @@
                     '배송지': row['수령인 주소(전체)'] || '',
                     '배송메세지': row['배송메시지'] || '',
                     '구매자연락처': row['주문자 휴대전화'] || ''
+                };
+            });
+        }
+
+        // ===== 쿠팡 변환 =====
+        function convertDataCoupang(data) {
+            const senderAddress = document.getElementById('senderAddress').value.trim();
+            return data.map(row => {
+                const buyerName = (row['구매자'] || '').trim();
+                const rawText = (row['등록상품명'] || '') + ' ' + (row['노출상품명(옵션명)'] || '');
+                const msg = (row['배송메세지'] || '').trim();
+                let optionInfo = matchProduct(rawText);
+                optionInfo = addSizeSuffix(optionInfo, msg);
+                const recipientName = (row['수취인이름'] || '').trim();
+                return {
+                    '보내는사람': buyerName ? buyerName + '(제주아꼼이네 쿠팡)' : '',
+                    '보내는사람연락처': (row['구매자전화번호'] || '').includes('*') ? '010-6687-4031' : (row['구매자전화번호'] || ''),
+                    '출고지': senderAddress,
+                    '수취인명': (recipientName.length === 1) ? recipientName + '*' : recipientName,
+                    '옵션정보': optionInfo,
+                    '수량': parseInt(row['구매수(수량)']) || 1,
+                    '수취인연락처1': row['수취인전화번호'] || '',
+                    '수취인연락처2': '',
+                    '배송지': row['수취인 주소'] || '',
+                    '배송메세지': row['배송메세지'] || '',
+                    '구매자연락처': row['구매자전화번호'] || ''
                 };
             });
         }
@@ -627,6 +659,7 @@
         // ===== 채널 초기화 =====
         setupUploadArea('uploadArea-smart', 'fileInput-smart', 'fileName-smart', 'convertBtn-smart', 1, convertDataSmart, 'smart');
         setupUploadArea('uploadArea-jasamol', 'fileInput-jasamol', 'fileName-jasamol', 'convertBtn-jasamol', 0, convertDataJasamol, 'jasamol');
+        setupUploadArea('uploadArea-coupang', 'fileInput-coupang', 'fileName-coupang', 'convertBtn-coupang', 0, convertDataCoupang, 'coupang');
     </script>
 </body>
 </html>
