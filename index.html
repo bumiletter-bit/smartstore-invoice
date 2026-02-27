@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스마트스토어 → 송장 변환기</title>
+    <title>제주아꼼이네 송장변환기</title>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -32,7 +32,7 @@
             box-shadow: 0 4px 24px rgba(0,0,0,0.08);
             padding: 40px;
             width: 100%;
-            max-width: 800px;
+            max-width: 1100px;
         }
         .sender-section {
             background: #f8f9ff;
@@ -76,15 +76,37 @@
             border-color: #4a6cf7;
             box-shadow: 0 0 0 3px rgba(74,108,247,0.1);
         }
+        .upload-grid {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .upload-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .channel-label {
+            text-align: center;
+            padding: 10px 8px;
+            border-radius: 10px 10px 0 0;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .channel-smart { background: #03C75A; }
+        .channel-jasamol { background: #4a6cf7; }
+        .channel-coupang { background: #E52528; }
         .upload-area {
             border: 2px dashed #c5cae9;
-            border-radius: 12px;
-            padding: 48px;
+            border-radius: 0 0 12px 12px;
+            padding: 28px 12px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
-            margin-bottom: 24px;
+            margin-bottom: 12px;
             background: #fafbff;
+            flex: 1;
         }
         .upload-area:hover, .upload-area.dragover {
             border-color: #4a6cf7;
@@ -94,13 +116,22 @@
             border-color: #4caf50;
             background: #f1f8e9;
         }
+        .upload-area.coming-soon {
+            cursor: default;
+            opacity: 0.5;
+            border-color: #ddd;
+        }
+        .upload-area.coming-soon:hover {
+            border-color: #ddd;
+            background: #fafbff;
+        }
         .upload-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
+            font-size: 36px;
+            margin-bottom: 8px;
         }
         .upload-text {
             color: #666;
-            font-size: 15px;
+            font-size: 13px;
         }
         .upload-text strong {
             color: #4a6cf7;
@@ -108,10 +139,19 @@
         .file-name {
             color: #4caf50;
             font-weight: 600;
-            font-size: 16px;
-            margin-top: 8px;
+            font-size: 14px;
+            margin-top: 6px;
         }
-        #fileInput { display: none; }
+        .upload-card input[type="file"] { display: none; }
+        .upload-card .btn {
+            padding: 10px;
+            font-size: 14px;
+        }
+        .btn.coming-soon {
+            background: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
         .btn {
             width: 100%;
             padding: 16px;
@@ -205,8 +245,8 @@
     </style>
 </head>
 <body>
-    <h1>스마트스토어 → 송장 변환기</h1>
-    <p class="subtitle">스마트스토어 발주 엑셀을 업로드하면 송장 양식으로 변환합니다</p>
+    <h1>제주아꼼이네 송장변환기</h1>
+    <p class="subtitle">발주 엑셀을 업로드하면 송장 양식으로 변환합니다</p>
 
     <div class="container">
         <div class="sender-section">
@@ -220,16 +260,42 @@
             <p style="font-size:12px; color:#888; margin-top:8px;">* 보내는사람 = 구매자명(제주아꼼이네) / 보내는사람연락처 = 구매자연락처 (자동 변환)</p>
         </div>
 
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">📄</div>
-            <div class="upload-text">
-                스마트스토어 엑셀 파일(B)을 여기에 <strong>드래그</strong>하거나 <strong>클릭</strong>하여 업로드
+        <div class="upload-grid">
+            <div class="upload-card">
+                <div class="channel-label channel-smart">스마트스토어</div>
+                <div class="upload-area" id="uploadArea-smart">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">
+                        엑셀 파일을 <strong>드래그</strong>하거나<br><strong>클릭</strong>하여 업로드
+                    </div>
+                    <div class="file-name" id="fileName-smart"></div>
+                </div>
+                <input type="file" id="fileInput-smart" accept=".xlsx,.xls">
+                <button class="btn btn-convert" id="convertBtn-smart" disabled>변환 및 다운로드</button>
             </div>
-            <div class="file-name" id="fileName"></div>
-        </div>
-        <input type="file" id="fileInput" accept=".xlsx,.xls">
 
-        <button class="btn btn-convert" id="convertBtn" disabled>변환 및 다운로드</button>
+            <div class="upload-card">
+                <div class="channel-label channel-jasamol">자사몰</div>
+                <div class="upload-area" id="uploadArea-jasamol">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">
+                        엑셀 파일을 <strong>드래그</strong>하거나<br><strong>클릭</strong>하여 업로드
+                    </div>
+                    <div class="file-name" id="fileName-jasamol"></div>
+                </div>
+                <input type="file" id="fileInput-jasamol" accept=".xlsx,.xls">
+                <button class="btn btn-convert" id="convertBtn-jasamol" disabled>변환 및 다운로드</button>
+            </div>
+
+            <div class="upload-card">
+                <div class="channel-label channel-coupang">쿠팡</div>
+                <div class="upload-area coming-soon">
+                    <div class="upload-icon">🔧</div>
+                    <div class="upload-text">준비 중</div>
+                </div>
+                <button class="btn coming-soon" disabled>준비 중</button>
+            </div>
+        </div>
 
         <div class="success-msg" id="successMsg">송장 엑셀 파일이 성공적으로 다운로드되었습니다!</div>
 
@@ -254,85 +320,84 @@
     </div>
 
     <script>
-        let parsedData = null;
+        // ===== 상태 =====
+        let parsedDataSmart = null;
+        let parsedDataJasamol = null;
 
-        // DOM elements
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const fileName = document.getElementById('fileName');
-        const convertBtn = document.getElementById('convertBtn');
+        // ===== DOM =====
         const previewSection = document.getElementById('previewSection');
         const successMsg = document.getElementById('successMsg');
 
-        // Upload area events
-        uploadArea.addEventListener('click', () => fileInput.click());
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            if (e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                handleFile(e.dataTransfer.files[0]);
-            }
-        });
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length) handleFile(e.target.files[0]);
-        });
+        // ===== 업로드 영역 공통 설정 =====
+        function setupUploadArea(areaId, inputId, fileNameId, btnId, headerRange, convertFn, storeKey) {
+            const area = document.getElementById(areaId);
+            const input = document.getElementById(inputId);
+            const fileNameEl = document.getElementById(fileNameId);
+            const btn = document.getElementById(btnId);
 
-        function handleFile(file) {
-            fileName.textContent = file.name;
-            uploadArea.classList.add('has-file');
-            successMsg.style.display = 'none';
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const workbook = XLSX.read(e.target.result, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[sheetName];
-
-                    // B파일은 2행이 헤더 (1행은 안내문)
-                    const rawData = XLSX.utils.sheet_to_json(sheet, { range: 1, defval: '' });
-                    parsedData = rawData;
-
-                    if (parsedData.length > 0) {
-                        convertBtn.disabled = false;
-                        showPreview(parsedData);
-                    } else {
-                        alert('데이터가 없습니다. 올바른 스마트스토어 엑셀 파일인지 확인해주세요.');
-                    }
-                } catch (err) {
-                    alert('파일을 읽는 중 오류가 발생했습니다: ' + err.message);
+            area.addEventListener('click', () => input.click());
+            area.addEventListener('dragover', (e) => { e.preventDefault(); area.classList.add('dragover'); });
+            area.addEventListener('dragleave', () => area.classList.remove('dragover'));
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    loadFile(e.dataTransfer.files[0]);
                 }
-            };
-            reader.readAsArrayBuffer(file);
+            });
+            input.addEventListener('change', (e) => {
+                if (e.target.files.length) loadFile(e.target.files[0]);
+            });
+
+            function loadFile(file) {
+                fileNameEl.textContent = file.name;
+                area.classList.add('has-file');
+                successMsg.style.display = 'none';
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const wb = XLSX.read(e.target.result, { type: 'array' });
+                        const ws = wb.Sheets[wb.SheetNames[0]];
+                        const data = XLSX.utils.sheet_to_json(ws, { range: headerRange, defval: '' });
+                        if (data.length > 0) {
+                            if (storeKey === 'smart') parsedDataSmart = data;
+                            else if (storeKey === 'jasamol') parsedDataJasamol = data;
+                            btn.disabled = false;
+                            showPreview(convertFn(data));
+                        } else {
+                            alert('데이터가 없습니다. 올바른 엑셀 파일인지 확인해주세요.');
+                        }
+                    } catch (err) {
+                        alert('파일을 읽는 중 오류: ' + err.message);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+
+            btn.addEventListener('click', () => {
+                const data = storeKey === 'smart' ? parsedDataSmart : parsedDataJasamol;
+                if (!data) return;
+                let converted = convertFn(data);
+                converted.sort((a, b) => (a['옵션정보'] || '').localeCompare(b['옵션정보'] || '', 'ko'));
+                exportExcel(converted);
+            });
         }
 
-        function showPreview(data) {
+        // ===== 미리보기 =====
+        function showPreview(converted) {
             previewSection.style.display = 'block';
-
-            // Stats
-            document.getElementById('totalOrders').textContent = data.length;
-            const totalQty = data.reduce((sum, row) => sum + (parseInt(row['수량']) || 1), 0);
+            document.getElementById('totalOrders').textContent = converted.length;
+            const totalQty = converted.reduce((sum, row) => sum + (parseInt(row['수량']) || 1), 0);
             document.getElementById('totalQty').textContent = totalQty;
-            const recipients = new Set(data.map(r => r['수취인명']));
+            const recipients = new Set(converted.map(r => r['수취인명']));
             document.getElementById('uniqueRecipients').textContent = recipients.size;
 
-            // Table - show converted format preview
-            const converted = convertData(data);
             const headers = ['보내는사람', '보내는사람연락처', '수취인명', '옵션정보', '수량', '배송지'];
             let html = '<table><thead><tr>';
             headers.forEach(h => html += `<th>${h}</th>`);
             html += '</tr></thead><tbody>';
-
-            const previewRows = converted.slice(0, 10);
-            previewRows.forEach(row => {
+            converted.slice(0, 10).forEach(row => {
                 html += '<tr>';
                 headers.forEach(h => {
                     let val = row[h] || '';
@@ -348,86 +413,121 @@
             document.getElementById('tableWrapper').innerHTML = html;
         }
 
-        // 한글/영문 사이즈 표현 → 영문 대문자 변환
+        // ===== 사이즈 감지 =====
         function detectSize(msg) {
             if (!msg) return null;
             const lower = msg.toLowerCase().trim();
-
-            // 한글 사이즈 매핑 (투에스 > 에스 순서 중요)
             const koreanMap = [
                 { patterns: ['투에스', '2에스'], size: '2S' },
                 { patterns: ['에스', '스몰'], size: 'S' },
                 { patterns: ['엠', '미디엄', '미듐'], size: 'M' },
             ];
-
             for (const item of koreanMap) {
                 for (const p of item.patterns) {
                     if (lower.includes(p)) return item.size;
                 }
             }
-
-            // 영문+사이즈: "2s사이즈", "s 사이즈", "m사이즈"
             let match = lower.match(/(2s|s|m)\s*사이즈/);
             if (match) return match[1].toUpperCase();
-
-            // 영문 단독: "2s", "s", "m"
             match = lower.match(/\b(2s)\b/) || lower.match(/\b([sm])\b/);
             if (match) return match[1].toUpperCase();
-
             return null;
         }
 
-        function convertData(data) {
-            const senderAddress = document.getElementById('senderAddress').value.trim();
+        // ===== 상품 카탈로그 매칭 =====
+        function matchProduct(rawText) {
+            const t = rawText || '';
+            // 무게 추출
+            const wm = t.match(/(\d+)\s*kg/i);
+            if (!wm) return t.trim();
+            const w = parseInt(wm[1]);
+            const wStr = w + 'kg';
 
+            // 3종세트
+            if (/3종세트/.test(t)) {
+                return '★추천 선물세트 / 상품 및 과수: 레드향&한라봉&천혜향 ' + wStr + '(3종세트)';
+            }
+            // 레몬
+            if (/레몬/.test(t)) {
+                return '과수 및 크기: 제주 레몬' + wStr + '(중대과)';
+            }
+            // 비가림/감귤
+            if (/비가림|감귤/.test(t)) {
+                if (/선물용|프리미엄\s*로얄/.test(t)) {
+                    return '고당도 비가림귤 / 상품 및 과수: 프리미엄 로얄과 - ' + wStr + '(선물용 2S~M)';
+                }
+                return '고당도 비가림귤 / 상품 및 과수: 로얄과 - ' + wStr + '(가정용 2S~M)';
+            }
+            // 과일 판별
+            let fruit;
+            if (/레드향/.test(t)) fruit = '레드향';
+            else if (/한라봉/.test(t)) fruit = '한라봉';
+            else if (/천혜향/.test(t)) fruit = '천혜향';
+            else return t.trim();
+            // 프리미엄 선물용 (2kg)
+            if (w === 2 && /프리미엄/.test(t)) {
+                return '프리미엄 선물용 / 상품 및 과수: 프리미엄 선물용 ' + fruit + ' - 2kg';
+            }
+            // 타입 판별
+            let type;
+            if (/못난이/.test(t)) type = '못난이';
+            else if (/선물용/.test(t)) type = '선물용';
+            else type = '가정용';
+            // 카테고리 판별
+            let category;
+            if (fruit === '레드향') {
+                category = '알알톡톡 레드향';
+            } else if (fruit === '천혜향') {
+                category = '과즙팡팡 천혜향';
+            } else {
+                const isNoji = /노지/.test(t) || (type === '가정용' && /랜덤/.test(t));
+                category = isNoji ? '노지 한라봉' : '하우스 한라봉';
+            }
+            // 상세 정보
+            let detail;
+            if (type === '못난이') {
+                detail = '랜덤과';
+            } else if (type === '선물용') {
+                detail = w === 3 ? '대과 7~13과' : w === 5 ? '대과 12~22과' : '';
+            } else {
+                if (category === '노지 한라봉') {
+                    detail = '랜덤과';
+                } else if (w === 9) {
+                    detail = '중과 45과 전후';
+                } else if (fruit === '천혜향') {
+                    detail = w === 3 ? '중소과 15과 전후' : w === 5 ? '중소과 25과 전후' : '';
+                } else {
+                    detail = w === 3 ? '중소과 18과 전후' : w === 5 ? '중소과 28과 전후' : '';
+                }
+            }
+            // 레드향 9kg만 ★ 표시
+            let fruitLabel = fruit;
+            if (fruit === '레드향' && w === 9) fruitLabel = '★레드향';
+
+            return category + ' / 상품 및 과수: ' + fruitLabel + ' ' + type + ' - ' + wStr + '(' + detail + ')';
+        }
+
+        // ===== 사이즈 접미사 =====
+        function addSizeSuffix(optionInfo, msg) {
+            let detectedSize = detectSize(msg);
+            if (!detectedSize && /귤/.test(optionInfo) && /작은|작게|작다|작아|소과/.test(msg)) {
+                detectedSize = 'S';
+            }
+            if (detectedSize) {
+                optionInfo = optionInfo.trim() + ' ' + detectedSize + '사이즈로!';
+            }
+            return optionInfo;
+        }
+
+        // ===== 스마트스토어 변환 =====
+        function convertDataSmart(data) {
+            const senderAddress = document.getElementById('senderAddress').value.trim();
             return data.map(row => {
                 const buyerName = (row['구매자명'] || '').trim();
-                let optionInfo = (row['옵션정보'] || '').replace(/아꼼이네\s*.*?상품선택\s*:\s*\d+\.\s*(\(제철\)\s*)?/g, '').replace(/\(★행사\)\s*/g, '').replace(/★?추천\s*선물세트\s*\/\s*상품\s*및\s*과수\s*:\s*/g, '').trim();
+                const rawOption = (row['옵션정보'] || '');
                 const msg = (row['배송메세지'] || '').trim();
-
-                // 레몬 10kg → 고정 문구로 변환
-                if (/레몬\s*10\s*kg/i.test(optionInfo)) {
-                    optionInfo = '과수 및 크기: 제주 레몬10kg(중대과)';
-                }
-
-                // 3종세트 상품: ★추천 선물세트 접두사 추가/변환
-                if (optionInfo.includes('3종세트')) {
-                    if (optionInfo.includes('/ 상품 및 과수:')) {
-                        // 기존 접두사(프리미엄 선물용 등)를 ★추천 선물세트로 변환
-                        const parts3 = optionInfo.split(/\/\s*상품\s*및\s*과수\s*:\s*/);
-                        optionInfo = '★추천 선물세트 / 상품 및 과수: ' + (parts3[1] || '').trim();
-                    } else {
-                        optionInfo = '★추천 선물세트 / 상품 및 과수: ' + optionInfo;
-                    }
-                }
-
-                // 선물용 상품 변환
-                if (optionInfo.includes('/ 상품 및 과수:')) {
-                    // "/ 상품 및 과수:" 뒤가 "프리미엄 선물용"이면 앞부분도 통일
-                    const parts = optionInfo.split(/\/\s*상품\s*및\s*과수\s*:\s*/);
-                    if (parts[1] && parts[1].trim().startsWith('프리미엄 선물용')) {
-                        optionInfo = '프리미엄 선물용 / 상품 및 과수: ' + parts[1].trim();
-                    }
-                } else if (optionInfo.includes('선물용')) {
-                    // 단독 선물용 상품 (예: 선물용 천혜향 - 2kg)
-                    if (!optionInfo.startsWith('프리미엄')) {
-                        optionInfo = '프리미엄 ' + optionInfo;
-                    }
-                    optionInfo = '프리미엄 선물용 / 상품 및 과수: ' + optionInfo;
-                }
-
-                // 배송메세지에서 사이즈 요청 감지
-                let detectedSize = detectSize(msg);
-
-                // 귤 상품 + 배송메세지에 "작다" 관련 표현 → S사이즈
-                if (!detectedSize && optionInfo.includes('귤') && /작은|작게|작다|작아|소과/.test(msg)) {
-                    detectedSize = 'S';
-                }
-
-                if (detectedSize) {
-                    optionInfo = optionInfo.trim() + ' ' + detectedSize + '사이즈로!';
-                }
-
+                let optionInfo = matchProduct(rawOption);
+                optionInfo = addSizeSuffix(optionInfo, msg);
                 return {
                     '보내는사람': buyerName ? buyerName + '(제주아꼼이네)' : '',
                     '보내는사람연락처': (row['구매자연락처'] || '').includes('*') ? '010-6687-4031' : (row['구매자연락처'] || ''),
@@ -444,129 +544,89 @@
             });
         }
 
-        // Convert button
-        convertBtn.addEventListener('click', () => {
-            if (!parsedData) return;
+        // ===== 자사몰 변환 =====
+        function convertDataJasamol(data) {
+            const senderAddress = document.getElementById('senderAddress').value.trim();
+            return data.map(row => {
+                const buyerName = (row['주문자명'] || '').trim();
+                const rawProduct = (row['주문상품명(세트상품 포함)'] || '');
+                const msg = (row['배송메시지'] || '').trim();
+                let optionInfo = matchProduct(rawProduct);
+                optionInfo = addSizeSuffix(optionInfo, msg);
+                const recipientName = (row['수령인'] || '').trim();
+                return {
+                    '보내는사람': buyerName ? buyerName + '(제주아꼼이네)' : '',
+                    '보내는사람연락처': (row['주문자 휴대전화'] || '').includes('*') ? '010-6687-4031' : (row['주문자 휴대전화'] || ''),
+                    '출고지': senderAddress,
+                    '수취인명': (recipientName.length === 1) ? recipientName + '*' : recipientName,
+                    '옵션정보': optionInfo,
+                    '수량': parseInt(row['수량']) || 1,
+                    '수취인연락처1': row['수령인 휴대전화'] || '',
+                    '수취인연락처2': '',
+                    '배송지': row['수령인 주소(전체)'] || '',
+                    '배송메세지': row['배송메시지'] || '',
+                    '구매자연락처': row['주문자 휴대전화'] || ''
+                };
+            });
+        }
 
-            let converted = convertData(parsedData);
-
-            // 옵션정보 기준 오름차순 정렬
-            converted.sort((a, b) => (a['옵션정보'] || '').localeCompare(b['옵션정보'] || '', 'ko'));
-
-            // Create workbook matching a.xlsx Sheet1 format
+        // ===== 엑셀 내보내기 (공통) =====
+        function exportExcel(converted) {
             const wb = XLSX.utils.book_new();
             const headers = ['보내는사람', '보내는사람연락처', '출고지', '수취인명', '옵션정보', '수량', '수취인연락처1', '수취인연락처2', '배송지', '배송메세지', '구매자연락처'];
-
             const ws = XLSX.utils.json_to_sheet(converted, { header: headers });
 
-            // a.xlsx 기준 열 너비
             ws['!cols'] = [
-                { wch: 18.5 },  // A 보내는사람
-                { wch: 14.25 }, // B 보내는사람연락처
-                { wch: 50.75 }, // C 출고지
-                { wch: 13.75 }, // D 수취인명
-                { wch: 60.25 }, // E 옵션정보
-                { wch: 5.5 },   // F 수량
-                { wch: 14.75 }, // G 수취인연락처1
-                { wch: 14.75 }, // H 수취인연락처2
-                { wch: 73.25 }, // I 배송지
-                { wch: 51 },    // J 배송메세지
-                { wch: 13 },    // K 구매자연락처
+                { wch: 18.5 }, { wch: 14.25 }, { wch: 50.75 }, { wch: 13.75 },
+                { wch: 60.25 }, { wch: 5.5 }, { wch: 14.75 }, { wch: 14.75 },
+                { wch: 73.25 }, { wch: 51 }, { wch: 13 },
             ];
 
-            // 스타일 정의
-            const thinBorder = {
-                top: { style: 'thin' },
-                bottom: { style: 'thin' },
-                left: { style: 'thin' },
-                right: { style: 'thin' }
-            };
-            const headerStyleYellow = {
-                fill: { fgColor: { rgb: 'FFFF00' } },
-                font: { bold: true, name: '맑은 고딕', sz: 11 },
-                border: thinBorder,
-                alignment: { horizontal: 'center', vertical: 'center' }
-            };
-            const headerStyleGreen = {
-                fill: { fgColor: { rgb: '92D050' } },
-                font: { bold: true, name: '맑은 고딕', sz: 11 },
-                border: thinBorder,
-                alignment: { horizontal: 'center', vertical: 'center' }
-            };
-            const dataStyle = {
-                border: thinBorder,
-                font: { name: '맑은 고딕', sz: 11 },
-                alignment: { vertical: 'center' }
-            };
-            const dataStyleRed = {
-                border: thinBorder,
-                font: { name: '맑은 고딕', sz: 11, color: { rgb: 'FF0000' }, bold: true },
-                fill: { fgColor: { rgb: 'FFC7CE' } },
-                alignment: { vertical: 'center' }
-            };
+            const thinBorder = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+            const headerStyleGreen = { fill: { fgColor: { rgb: '92D050' } }, font: { bold: true, name: '맑은 고딕', sz: 11 }, border: thinBorder, alignment: { horizontal: 'center', vertical: 'center' } };
+            const headerStyleYellow = { fill: { fgColor: { rgb: 'FFFF00' } }, font: { bold: true, name: '맑은 고딕', sz: 11 }, border: thinBorder, alignment: { horizontal: 'center', vertical: 'center' } };
+            const dataStyle = { border: thinBorder, font: { name: '맑은 고딕', sz: 11 }, alignment: { vertical: 'center' } };
+            const dataStyleRed = { border: thinBorder, font: { name: '맑은 고딕', sz: 11, color: { rgb: 'FF0000' }, bold: true }, fill: { fgColor: { rgb: 'FFC7CE' } }, alignment: { vertical: 'center' } };
+            const dataStyleYellow = { border: thinBorder, font: { name: '맑은 고딕', sz: 11 }, fill: { fgColor: { rgb: 'FFFF00' } }, alignment: { vertical: 'center' } };
 
-            const dataStyleYellow = {
-                border: thinBorder,
-                font: { name: '맑은 고딕', sz: 11 },
-                fill: { fgColor: { rgb: 'FFFF00' } },
-                alignment: { vertical: 'center' }
-            };
-
-            // 배송메세지 날짜 요청 감지
             function hasDateRequest(msg) {
                 if (!msg) return false;
                 return /다음\s*주|다음\s*날|내일|모레|글피|\d+일|\d+월|\d+\/\d+|월요|화요|수요|목요|금요|토요|일요|주말|평일|다다음|이번\s*주|일주일|[이삼사오육칠팔]\s*일\s*뒤|[이삼사오육칠팔]\s*일\s*후|\d+\s*일\s*뒤|\d+\s*일\s*후|며칠|몇\s*일/.test(msg);
             }
 
-            // 헤더 스타일 적용 (1행)
             const colLetters = ['A','B','C','D','E','F','G','H','I','J','K'];
-            // A(보내는사람), B(연락처), C(출고지) = 초록, 나머지 = 노랑
-            const greenCols = [0, 1, 2]; // A, B, C
+            const greenCols = [0, 1, 2];
             colLetters.forEach((col, i) => {
                 const ref = col + '1';
-                if (ws[ref]) {
-                    ws[ref].s = greenCols.includes(i) ? headerStyleGreen : headerStyleYellow;
-                }
+                if (ws[ref]) ws[ref].s = greenCols.includes(i) ? headerStyleGreen : headerStyleYellow;
             });
 
-            // 데이터 행 스타일 적용
-            const totalRows = converted.length + 1; // +1 for header
+            const totalRows = converted.length + 1;
             for (let r = 2; r <= totalRows; r++) {
-                // J열(배송메세지) 날짜 요청 체크
-                const msgRef = 'J' + r;
-                const msgVal = ws[msgRef] ? String(ws[msgRef].v || '') : '';
+                const msgVal = ws['J' + r] ? String(ws['J' + r].v || '') : '';
                 const isDateReq = hasDateRequest(msgVal);
-
-                // I열(배송지) 제주 배송 체크
-                const addrRef = 'I' + r;
-                const addrVal = ws[addrRef] ? String(ws[addrRef].v || '') : '';
+                const addrVal = ws['I' + r] ? String(ws['I' + r].v || '') : '';
                 const isJeju = /제주/.test(addrVal);
-
                 colLetters.forEach((col) => {
                     const ref = col + r;
                     let style = dataStyle;
                     if (isDateReq && col === 'J') style = dataStyleRed;
                     else if (isJeju && col === 'I') style = dataStyleYellow;
-
-                    if (ws[ref]) {
-                        ws[ref].s = style;
-                    } else {
-                        ws[ref] = { v: '', t: 's', s: style };
-                    }
+                    if (ws[ref]) ws[ref].s = style;
+                    else ws[ref] = { v: '', t: 's', s: style };
                 });
             }
 
             XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-
-            // Download
             const today = new Date();
-            const dateStr = today.getFullYear() +
-                String(today.getMonth() + 1).padStart(2, '0') +
-                String(today.getDate()).padStart(2, '0');
+            const dateStr = today.getFullYear() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
             XLSX.writeFile(wb, `송장_${dateStr}.xlsx`);
-
             successMsg.style.display = 'block';
-        });
+        }
+
+        // ===== 채널 초기화 =====
+        setupUploadArea('uploadArea-smart', 'fileInput-smart', 'fileName-smart', 'convertBtn-smart', 1, convertDataSmart, 'smart');
+        setupUploadArea('uploadArea-jasamol', 'fileInput-jasamol', 'fileName-jasamol', 'convertBtn-jasamol', 0, convertDataJasamol, 'jasamol');
     </script>
 </body>
 </html>
