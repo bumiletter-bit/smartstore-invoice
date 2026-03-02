@@ -457,10 +457,19 @@
             if (/레몬/.test(t)) {
                 return '과수 및 크기: 제주 레몬' + wStr + '(중대과)';
             }
+            // 자몽
+            if (/자몽/.test(t)) {
+                let jType = /선물용/.test(t) ? '선물용' : '가정용';
+                let jDetail = w === 3 ? '10과전후' : w === 5 ? '17과전후' : '';
+                return '제주자몽 / 상품 및 과수: 제주자몽 ' + jType + ' ' + wStr + '(' + jDetail + ')';
+            }
             // 비가림/감귤
             if (/비가림|감귤/.test(t)) {
                 if (/선물용|프리미엄\s*로얄/.test(t)) {
                     return '고당도 비가림귤 / 상품 및 과수: 프리미엄 로얄과 - ' + wStr + '(선물용 2S~M)';
+                }
+                if (/중대과|L이상/.test(t)) {
+                    return '고당도 비가림귤 / 상품 및 과수: 중대과 - ' + wStr + '(가정용 L이상)';
                 }
                 return '고당도 비가림귤 / 상품 및 과수: 로얄과 - ' + wStr + '(가정용 2S~M)';
             }
@@ -506,11 +515,7 @@
                     detail = w === 3 ? '중소과 18과 전후' : w === 5 ? '중소과 28과 전후' : '';
                 }
             }
-            // 레드향 9kg만 ★ 표시
-            let fruitLabel = fruit;
-            if (fruit === '레드향' && w === 9) fruitLabel = '★레드향';
-
-            return category + ' / 상품 및 과수: ' + fruitLabel + ' ' + type + ' - ' + wStr + '(' + detail + ')';
+            return category + ' / 상품 및 과수: ' + fruit + ' ' + type + ' - ' + wStr + '(' + detail + ')';
         }
 
         // ===== 사이즈 접미사 =====
